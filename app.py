@@ -1,80 +1,60 @@
-from flask import Flask
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
+from models import *
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
 db = SQLAlchemy(app)
 
-authors = db.Table('authors',
-   db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
-   db.Column('paper_id', db.Integer, db.ForeignKey('paper.id'), primary_key=True)
-)
+dummy = Dummy()
+#app.current_user = None
+app.current_user = User.query.first()
 
-class Score(db.Model):
-    __tablename__ = "score"
-    paper_id = db.Column(db.Integer, db.ForeignKey('paper.id'), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    rating = db.Column(db.Integer)
 
-    reviewer = relationship("User" ,backref="paper_assocs")
-class User(db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
+@app.route('/')
+def index():
+    if app.current_user == None:
+        return render_template('login.html')
+    else:
+        papers = Paper.query.filter_by(Paper.authors.any(id=app.current_user.id))
+        print(papers)
+        return render_template('index.html', current_user=app.current_user, papers=papers)
 
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    hashed_password = db.Column(db.String(120), nullable=False)
+@app.route('/login')
+def login():
+    if app.current_user == None:
+        return render_template('login.html')
+    else:
+        return render_template('index.html', current_user=app.current_user)
 
-    def __repr__(self):
-        return '<User %r>' % self.email
+@app.route('/logging_in',methods = ['POST', 'GET'])
+def logging_in():
+   if request.method == 'POST':
+      result = request.form
+      print(result)
+      user = User.query.filter_by(email=result.get('email')).first()
+      if user and user.hashed_password == result.get('password'):
+          app.current_user = user
+          return render_template('index.html', current_user=app.current_user)
+      else:
+          return render_template('login.html', message="Login failed")
 
-class Paper(db.Model):
-    __tablename__ = 'paper'
-    id = db.Column(db.Integer, primary_key=True)
 
-    status = db.Column(db.String(120), nullable=False)
-    title = db.Column(db.String(120), nullable=False)
-    abstract = db.Column(db.Text(500), nullable=False)
+@app.route('/paper_submission')
+def hello_name():
+   return render_template('paper_submission.html')
 
-    scores = db.relationship("Score", backref="paper")
-    authors = db.relationship('User', secondary=authors, lazy='subquery',
-        backref=db.backref('papers', lazy=True))
+@app.route('/submit_paper',methods = ['POST', 'GET'])
+def submit_paper():
+   if request.method == 'POST':
+      result = request.form
+      print(result)
+      new_paper = Paper(status="unreviewed", title=result.get('title'), abstract=result.get('abstract'))
+      print(new_paper)
+      db.session.add(new_paper)
+      db.session.commit()
+      return render_template('index.html', current_user=app.current_user)
 
-    def __repr__(self):
-        return '<Paper %r>' % self.title
-
-db.drop_all()
-db.create_all()
-
-user1 = User(email="testmail@web.de", hashed_password="test")
-paper1 = Paper(status="vergeben", title="testtitle", abstract="cool")
-paper2 = Paper(status="vergebasdasden", title="testtitle2", abstract="cool2")
-
-db.session.add(user1)
-db.session.add(paper1)
-db.session.add(paper2)
-db.session.commit()
-
-foundUser = User.query.first()
-foundPaper = Paper.query.first()
-
-foundPaper.authors.append(foundUser)
-db.session.add(foundPaper)
-db.session.commit()
-
-foundUser = User.query.first()
-foundPaper = Paper.query.first()
-
-score = Score(rating=5)
-score.reviewer = foundUser
-score.user_id = foundUser.id
-score.paper_id = foundPaper.id
-foundPaper.scores.append(score)
-
-db.session.add(score)
-db.session.commit()
-
-foundUser = User.query.first()
-foundPaper = Paper.query.first()
-print(foundPaper.scores[0].user_id == foundUser.id)
-print(foundPaper.scores[0].paper_id == foundPaper.id)
+if __name__ == '__main__':
+   app.run()
