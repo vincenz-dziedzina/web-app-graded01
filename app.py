@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from models import *
@@ -9,7 +9,7 @@ db = SQLAlchemy(app)
 
 dummy = Dummy()
 # app.current_user = None
-app.current_user = User.query.first()
+app.current_user = User.query.filter_by(email="testmail2@web.de").first()
 
 
 @app.route('/')
@@ -58,7 +58,7 @@ def register():
         new_user = User(email=result.get('email'), hashed_password=result.get('password'))
         print(new_user)
         db.session.commit()
-        app.current_user = new_user
+        app.current_user = User.query.filter_by(email=result.get('email')).first()
         return render_template('index.html', current_user=app.current_user)
 
 @app.route('/paper_submission')
@@ -81,9 +81,22 @@ def submit_paper():
 
 @app.route('/set_roles')
 def set_roles():
-    return render_template('set_roles.html')
+    users = User.query.all()
+    return render_template('set_roles.html', users=users)
 
+@app.route('/setting_roles', methods=['POST', 'GET'])
+def setting_roles():
+    result = request.form
+    #print(result)
+    list = result.copy().listvalues()
+    for i in range(len(list)):
+        print(list[i])
+        #temp_user = User.query.filter_by(email=email).first()
+        #temp_user.is_reviewer = True
+        #db.session.add(temp_user)
+        #db.session.commit()
 
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run()
