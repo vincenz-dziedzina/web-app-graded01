@@ -13,13 +13,14 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
   <div class="w3-top">
   <div class="w3-bar w3-green w3-card w3-left-align w3-large">
     <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-green" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-    <a href="/" class="w3-bar-item w3-button w3-padding-large w3-white">Index</a>
-    <a href="/paper_submission" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Submit Paper</a>
-    {% if current_user and current_user.is_admin %}
-    <a href="/set_roles" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Set Roles</a>
+    <a href="{{ url_for('index')}}" class="w3-bar-item w3-button w3-padding-large w3-white">Index</a>
+    <a href="{{ url_for('paper_submission')}}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Submit Paper</a>
+    {% if logged_in and current_user.is_admin %}
+      <a href="{{ url_for('roles') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Set Roles</a>
     {% endif %}
-    <a href="#" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Link 3</a>
-    <a href="/logout" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Logout</a>
+    {% if logged_in %}
+      <a href="{{ url_for('logout') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Logout</a>
+    {% endif%}
   </div>
   </div>
     <header class="w3-container w3-green w3-center" style="padding:128px 16px">

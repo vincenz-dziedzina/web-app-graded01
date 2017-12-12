@@ -23,7 +23,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     email = db.Column(db.String(120), unique=True, nullable=False)
-    hashed_password = db.Column(db.String(120), nullable=False)
+    hashed_password = db.Column(db.String(500), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     is_reviewer = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -47,7 +47,6 @@ class Paper(db.Model):
         return '<Paper %r>' % self.title
 
 class Dummy:
-
     def __init__(self):
         db.drop_all()
         db.create_all()
@@ -88,4 +87,3 @@ class Dummy:
         foundPaper = Paper.query.first()
         #print(foundPaper.scores[0].user_id == foundUser.id)
         #print(foundPaper.scores[0].paper_id == foundPaper.id)
-
