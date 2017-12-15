@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<<<<<<< HEAD
 
     <h1>Set Roles of Users</h1>
       <form action = "http://localhost:5000/setting_roles" method = "POST">
@@ -21,3 +22,12 @@
       </form>
 
 {% endblock %}
+=======
+     <h1>Set Roles of Users</h1>
+     <ul>
+       {% for user in users %}
+           <li>{{ user.email }}</li>
+       {% endfor %}
+     </ul>
+{% endblock %}
+>>>>>>> c803740fa40f77623a23fe25c9d3a121d056b731
