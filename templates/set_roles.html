@@ -1,9 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
-<<<<<<< HEAD
-
     <h1>Set Roles of Users</h1>
-      <form action = "http://localhost:5000/setting_roles" method = "POST">
+      <form action = {{ url_for("roles") }} method = "POST">
            <table class="w3-table">
                 <thead class="w3-dark-grey">
                      <tr>
@@ -14,7 +12,7 @@
            {% for user in users %}
                 <tr class="w3-hover-green">
                      <td>{{ user.email }}</td>
-                     <td><input class="w3-check w3-right" type="checkbox" name="role" value="{{ user.email }}" {% if user.isadmin %} checked {% endif %}></td>
+                     <td><input class="w3-check w3-right" type="checkbox" name="user" value="{{ user.email }}" {% if user.is_reviewer %} checked {% endif %}></td>
                 </tr>
            {% endfor %}
            </table>
@@ -22,12 +20,3 @@
       </form>
 
 {% endblock %}
-=======
-     <h1>Set Roles of Users</h1>
-     <ul>
-       {% for user in users %}
-           <li>{{ user.email }}</li>
-       {% endfor %}
-     </ul>
-{% endblock %}
->>>>>>> c803740fa40f77623a23fe25c9d3a121d056b731

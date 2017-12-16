@@ -50,10 +50,10 @@ class Dummy:
     def __init__(self):
         db.drop_all()
         db.create_all()
-
-        user1 = User(email="testmail@web.de", hashed_password="test")
-        user2 = User(email="testmail3@web.de", hashed_password="test3")
-        admin1 = User(email="testmail2@web.de", hashed_password="test2", is_admin=True)
+        hashed_password = generate_password_hash("test")
+        user1 = User(email="testmail@web.de", hashed_password=hashed_password)
+        user2 = User(email="testmail3@web.de", hashed_password=hashed_password)
+        admin1 = User(email="testmail2@web.de", hashed_password=hashed_password, is_admin=True)
         paper1 = Paper(status="vergeben", title="testtitle", abstract="cool")
         paper2 = Paper(status="vergebasdasden", title="testtitle2", abstract="cool2")
 
