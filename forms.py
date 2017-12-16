@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectMultipleField,PasswordField
+from wtforms import StringField, SelectMultipleField, PasswordField, SelectField
 from wtforms.validators import DataRequired
 
 class PaperSubmission(FlaskForm):
@@ -14,3 +14,9 @@ class Login(FlaskForm):
 class Registration(FlaskForm):
     email =  StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
+
+class SetStatus(FlaskForm):
+    status =  SelectField('Status', coerce=str)
+
+class SetReviewer(FlaskForm):
+    reviewer =  SelectMultipleField('Reviewer')

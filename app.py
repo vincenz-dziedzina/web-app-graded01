@@ -20,9 +20,10 @@ db = SQLAlchemy(app)
 # flask run
 
 class Status:
-    UNDER_REVIEW = "under review"
+    UNDER_REVIEW = "under_review"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
+
 
 def logged_in():
     return "auth_user_id" in session
@@ -140,6 +141,65 @@ def roles():
             db.session.commit()
 
         return redirect(url_for("index"))
+
+@app.route('/accept_papers', methods=['POST', 'GET'])
+@check_authentification
+def accept_papers():
+    papers = Paper.query.all()
+    if request.method == "GET":
+        return render_template('accept_papers.html', papers=papers)
+
+@app.route('/accept_papers/<int:paperID>', methods=['POST', 'GET'])
+@check_authentification
+def set_status(paperID):
+    paper = Paper.query.filter_by(id=paperID).first()
+    form = SetStatus()
+    # I really am sorry for this but nothing else worked
+    choices = [('under_review', Status.UNDER_REVIEW), ('accepted', Status.ACCEPTED), ('rejected', Status.REJECTED)]
+    form.status.choices = choices
+    if request.method == "GET":
+        return render_template('set_status.html', paper=paper, form=form)
+    elif request.method == 'POST':
+        result = request.form
+        paper.status = result.get('status')
+        db.session.commit()
+        return redirect(url_for("accept_papers"))
+
+@app.route('/set_reviewer/<int:paperID>', methods=['POST', 'GET'])
+@check_authentification
+def set_reviewer(paperID):
+    paper = Paper.query.filter_by(id=paperID).first()
+
+    author_ids = []
+    for author in paper.authors:
+        author_ids.append(author.id)
+
+    pot_reviewers = []
+    users = User.query.filter(User.id not in author_ids).all()
+    for user in users:
+        pot_reviewers.append((user.id, user.email))
+
+    form = SetReviewer()
+    form.reviewer.choices = pot_reviewers
+
+    if request.method == "GET":
+        return render_template('set_reviewer.html', paper=paper, form=form)
+    elif request.method == 'POST':
+        scores = []
+        reviewers = request.form.getlist("reviewer")
+        for reviewer in reviewers:
+            rev = User.query.filter_by(email=reviewer).first()
+            score = Score(paper_id=paper.id, user_id=rev.id)
+            db.session.add(score)
+            db.session.commit()
+            paper.scores.append(score)
+            db.session.commit()
+
+        paper.reviewers.append(reviewers)
+
+        db.session.commit()
+        return redirect(url_for("accept_papers"))
+
 
 if __name__ == '__main__':
     app.run()

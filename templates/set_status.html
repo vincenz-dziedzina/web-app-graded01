@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>Change Status for</h1>
+    <h2>{{ paper.title }}</h2>
+    <form action = "{{ url_for('set_status', paperID=paper.id)}}" method = "POST" >
+            {{ form.csrf_token }}
+            {{ form.status.label(class_="w3-text-green") }}
+            {{ form.status(class_="w3-input") }}
+            <input type="submit" value="submit" class="w3-input"/>
+        </form>
+{% endblock %}

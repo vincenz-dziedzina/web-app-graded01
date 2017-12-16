@@ -17,6 +17,7 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <a href="{{ url_for('paper_submission')}}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Submit Paper</a>
     {% if logged_in and current_user.is_admin %}
       <a href="{{ url_for('roles') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Set Roles</a>
+      <a href="{{ url_for('accept_papers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Overview Papers</a>
     {% endif %}
     {% if logged_in %}
       <a href="{{ url_for('logout') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Logout</a>

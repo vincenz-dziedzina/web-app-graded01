@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h1>Overview of paper status</h1>
+    <p>ats owners hair then claws head knock over christmas tree, so claws in your leg but cat not kitten around meow or attack dog, run away and pretend to be victim rub face on everything. Who's the baby pelt around the house and up and down stairs chasing phantoms. Toy mouse squeak roll over chase mice cat slap dog in face, or while happily ignoring when being called for chase the pig around the house howl uncontrollably for no reason.</p>
+    <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+            <h2>Submitted Papers</h2>
+            {% if papers == None %}
+                <p>There are no papers to accept.</p>
+            {% else %}
+            <table class="w3-table">
+                <thead class="w3-dark-grey">
+                     <tr>
+                         <td><h2>Title</h2></td>
+                         <td><h2>Abstract</h2></td>
+                         <td><h2>Authors</h2></td>
+                         <td><h2>Reviewers</h2></td>
+                         <td><h2>Scores</h2></td>
+                         <td><h2>Status</h2></td>
+                     </tr>
+                </thead>
+                {% for paper in papers %}
+                    <tr>
+                        <td>{{ paper.title }}</td>
+                        <td>{{ paper.abstract }}</td>
+                        <td>{% for author in paper.authors %}
+                                {{ author.email }} <br>
+                            {% endfor %}
+                        </td>
+                        <td>{% for score in paper.scores %}
+                                {{ score.reviewer.email }}<bR>
+                            {% endfor %}<br>
+                            <a href="{{ url_for('set_reviewer', paperID=paper.id)}}">Change reviewers</a></td>
+                        </td>
+                        <td>{% for scoring in paper.scores %}
+                                {{ scoring.score }}<bR>
+                            {% endfor %}
+                        </td>
+                        <td>{{ paper.status }}
+                        <a href="{{ url_for('set_status', paperID=paper.id)}}">Change status</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+            {% endif %}
+        </div>
+{% endblock %}

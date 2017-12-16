@@ -15,9 +15,10 @@ class Score(db.Model):
     __tablename__ = "score"
     paper_id = db.Column(db.Integer, db.ForeignKey('paper.id'), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    rating = db.Column(db.Integer)
+    rating = db.Column(db.Integer, default=0)
 
     reviewer = relationship("User" ,backref="paper_assocs")
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
