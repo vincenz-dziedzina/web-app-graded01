@@ -1,10 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
-db = SQLAlchemy(app)
+from settings import db
 
 authors = db.Table('authors',
    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),

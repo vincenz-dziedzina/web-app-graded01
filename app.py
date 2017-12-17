@@ -6,12 +6,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import *
 from forms import *
-# from enum import Enum
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db/test.db'
-app.secret_key = "mysecretkey"
-db = SQLAlchemy(app)
+from settings import app, db
 
 # Terminal instructions:
 # . web-tech/bin/activate
@@ -19,15 +14,18 @@ db = SQLAlchemy(app)
 # export FLASK_DEBUG=1
 # flask run
 
+# TODO put GET und Post Logic for one route in different functions
+
+# Enum for python 2.7
 class Status:
     UNDER_REVIEW = "under_review"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
 
-
 def logged_in():
     return "auth_user_id" in session
 
+# Provides logged_in and current_user variable for every template
 @app.context_processor
 def add_template_variables():
     variables = dict()
@@ -41,9 +39,20 @@ def check_authentification(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if logged_in():
-            print("in here")
             return f(*args, **kwargs)
         else:
+            # TODO output some message with flash
+            # TODO implement automatic flash display if given in layout template
+            return redirect(url_for("login"))
+    return decorated_function
+
+def check_admin(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if get_current_user().is_admin:
+            return f(*args, **kwargs)
+        else:
+            # TODO do something appropriate
             return redirect(url_for("login"))
     return decorated_function
 
@@ -60,17 +69,20 @@ def index():
 
 @app.route('/login', methods=["POST", "GET"])
 def login():
+    form = Login()
     if request.method == 'GET':
-        form = Login()
         return render_template('login.html', form=form)
     elif request.method == 'POST':
         form_data = request.form
         user = User.query.filter_by(email=form_data.get('email')).first()
-        if check_password_hash(user.hashed_password, form_data.get("password")):
-            session["auth_user_id"] = user.id
-            return redirect(url_for("index"))
+        if(user != None):
+            if check_password_hash(user.hashed_password, form_data.get("password")):
+                session["auth_user_id"] = user.id
+                return redirect(url_for("index"))
+            else:
+                return render_template('login.html', message="Login failed")
         else:
-            return render_template('login.html', message="Login failed")
+            return render_template('login.html', message="No user with this email in database.", form=form)
 
 @app.route('/logout')
 @check_authentification
@@ -98,6 +110,7 @@ def registration():
 @app.route('/paper_submission', methods=['POST', 'GET'])
 @check_authentification
 def paper_submission():
+    # TODO make this RESTfull, add a paper page where the author can delete the paper: paper/id
     current_user = get_current_user()
     if request.method == "GET":
         form = PaperSubmission()
@@ -110,25 +123,30 @@ def paper_submission():
         return render_template('paper_submission.html', form=form)
     elif request.method == "POST":
         result = request.form
-        #print(result)
+
         new_paper = Paper(status=Status.UNDER_REVIEW, title=result.get('title'), abstract=result.get('abstract'))
         authors = request.form.getlist("authors")
         users = User.query.filter(User.id in authors).all()
+
         for user in users:
             new_paper.authors.append(user)
+
         new_paper.authors.append(current_user)
-
-
+        db.session.add(new_paper)
         db.session.commit()
-        papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
 
+        # TODO redirect to Paper page RESTfull with delete button
+        papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
         return render_template('index.html', current_user=current_user, papers=papers)
 
 @app.route('/roles', methods=['POST', 'GET'])
 @check_authentification
+@check_admin
 def roles():
     current_user = get_current_user()
+    # writing to db with this method did not work
     users = User.query.all()
+    # users = db.session.query(User).all()
     if request.method == "GET":
         return render_template('set_roles.html', users=users)
     elif request.method == 'POST':
@@ -138,12 +156,14 @@ def roles():
                 user.is_reviewer = True
             else:
                 user.is_reviewer = False
-            db.session.commit()
-
+        db.session.commit()
         return redirect(url_for("index"))
 
-@app.route('/accept_papers', methods=['POST', 'GET'])
+# TODO test admin access
+# TODO add error codes, maybe??
+@app.route('/accept_papers', methods=['GET'])
 @check_authentification
+@check_admin
 def accept_papers():
     papers = Paper.query.all()
     if request.method == "GET":
@@ -157,6 +177,7 @@ def set_status(paperID):
     # I really am sorry for this but nothing else worked
     choices = [('under_review', Status.UNDER_REVIEW), ('accepted', Status.ACCEPTED), ('rejected', Status.REJECTED)]
     form.status.choices = choices
+
     if request.method == "GET":
         return render_template('set_status.html', paper=paper, form=form)
     elif request.method == 'POST':
@@ -168,7 +189,7 @@ def set_status(paperID):
 @app.route('/set_reviewer/<int:paperID>', methods=['POST', 'GET'])
 @check_authentification
 def set_reviewer(paperID):
-    paper = Paper.query.filter_by(id=paperID).first()
+    paper = Paper.query.get(paperID)
 
     author_ids = []
     for author in paper.authors:
@@ -188,7 +209,7 @@ def set_reviewer(paperID):
         scores = []
         reviewers = request.form.getlist("reviewer")
         for reviewer in reviewers:
-            rev = User.query.filter_by(email=reviewer).first()
+            rev = User.query.filter_by(email=reviewer.email).first()
             score = Score(paper_id=paper.id, user_id=rev.id)
             db.session.add(score)
             db.session.commit()
