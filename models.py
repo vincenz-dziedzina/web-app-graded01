@@ -41,7 +41,7 @@ class Paper(db.Model):
     # relationships
     authors = db.relationship('User', secondary=authors, lazy='subquery', backref=db.backref('papers', lazy=True))
     reviewers = db.relationship("Score", back_populates="paper")
-    # scores = db.relationship("Score", back_populates="paper")
+    scores = db.relationship("Score", back_populates="paper")
 
     def __repr__(self):
         return '<Paper %r>' % self.title

@@ -1,7 +1,6 @@
 
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import *
@@ -16,6 +15,9 @@ from settings import app, db
 
 # TODO put GET und Post Logic for one route in different functions
 # TODO Mark the current tab
+# TODO add DB constraints
+# TODO implement CSRF token
+# TODO limit reviewers to three
 
 # Enum for python 2.7
 class Status:
@@ -190,6 +192,7 @@ def set_status(paperID):
 
 @app.route('/set_reviewer/<int:paperID>', methods=['POST', 'GET'])
 @check_authentification
+@check_admin
 def set_reviewer(paperID):
     paper = Paper.query.get(paperID)
 
@@ -225,6 +228,57 @@ def set_reviewer(paperID):
         db.session.commit()
         return redirect(url_for("accept_papers"))
 
+@app.route("/papers", methods=["GET"])
+@check_authentification
+def getPapers():
+    user = get_current_user()
+    submitted_papers = Paper.query.filter(Paper.authors.any(id=user.id)).all()
+    scores = user.scored_papers
+
+    return render_template("papers.html", scores=scores, submitted_papers=submitted_papers)
+
+# TODO put both actions in one?
+@app.route("/papers/<int:paperID>", methods=["GET"])
+@check_authentification
+def getPaperRating(paperID):
+    user = get_current_user()
+    paper = Paper.query.get(paperID)
+    score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
+
+    if(paper != None):
+        for reviewer in paper.reviewers:
+            if reviewer.reviewer.id == user.id:
+                form = SetRating()
+                form.rating.data = score.rating
+                return render_template("rate_paper.html", paper=paper, form=form)
+        # TODO flash message not allowed to rate this paper
+        return redirect(url_for("getPapers"))
+    else:
+        # TODO flash message this paper does not exist
+        return redirect(url_for("getPapers"))
+
+@app.route("/papers/<int:paperID>", methods=["POST"])
+@check_authentification
+def postPaper(paperID):
+    user = get_current_user()
+    paper = Paper.query.get(paperID)
+    if(paper != None):
+        form = SetRating(request.form)
+        if(form.validate()):
+            # TODO refactor for handling everywhere else
+            rating = form.rating.data
+            score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
+            score.rating = rating
+            db.session.commit()
+            # TODO flash now oder message
+            return render_template("rate_paper.html", paper=paper, form=form)
+        else:
+            # TODO flash message: render_template(rate_paper, form=form)
+            # TODO error handling
+            return redirect(url_for("getPaperRating",  paper.id))
+    else:
+        # TODO flash message
+        return redirect(url_for("getPaperRating",  paper.id))
 
 if __name__ == '__main__':
     app.run()

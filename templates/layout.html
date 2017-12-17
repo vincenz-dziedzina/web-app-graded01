@@ -19,15 +19,20 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
       <a href="{{ url_for('roles') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Set Roles</a>
       <a href="{{ url_for('accept_papers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Overview Papers</a>
     {% endif %}
+    {% if current_user.is_reviewer %}
+        <a href="{{ url_for('getPapers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Papers</a>
+    {% endif %}
     {% if logged_in %}
       <a href="{{ url_for('logout') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Logout</a>
     {% endif%}
   </div>
   </div>
-    <header class="w3-container w3-green w3-center" style="padding:128px 16px">
-      <h1 class="w3-margin w3-jumbo">Peer Review System</h1>
-      <p class="w3-xlarge">Template by w3.css</p>
-    </header>
+    {% if logged_in == false %}
+      <header class="w3-container w3-green w3-center" style="padding:128px 16px">
+        <h1 class="w3-margin w3-jumbo">Peer Review System</h1>
+        <p class="w3-xlarge">Template by w3.css</p>
+      </header>
+    {% endif %}
     <div class="w3-content">
           {% block body %}{% endblock %}
     </div>

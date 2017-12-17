@@ -33,8 +33,8 @@
                           {% endfor %}<br>
                           <a href="{{ url_for('set_reviewer', paperID=paper.id)}}">Change reviewers</a></td>
                         </td>
-                        <td>{% for scoring in paper.scores %}
-                                {{ scoring.score }}<bR>
+                        <td>{% for score in paper.scores %}
+                                {{ score.rating }}<br>
                             {% endfor %}
                         </td>
                         <td>{{ paper.status }}

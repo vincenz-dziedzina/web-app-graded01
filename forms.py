@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectMultipleField, PasswordField, SelectField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SelectMultipleField, PasswordField, SelectField, IntegerField
+from wtforms.validators import *
 
 class PaperSubmission(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
@@ -20,3 +20,7 @@ class SetStatus(FlaskForm):
 
 class SetReviewer(FlaskForm):
     reviewer =  SelectMultipleField('Reviewer')
+
+class SetRating(FlaskForm):
+    # TODO validation for -2 to 2
+    rating = IntegerField("Rating", validators=[NumberRange(min=-2, max=2)])
