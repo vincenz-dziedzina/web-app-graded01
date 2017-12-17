@@ -15,6 +15,7 @@ from settings import app, db
 # flask run
 
 # TODO put GET und Post Logic for one route in different functions
+# TODO Mark the current tab
 
 # Enum for python 2.7
 class Status:
@@ -90,6 +91,7 @@ def logout():
     del session["auth_user_id"]
     return redirect(url_for("login"))
 
+# TODO regular expression for email
 @app.route('/registration', methods=['POST', 'GET'])
 def registration():
     if request.method == 'GET':
@@ -191,32 +193,34 @@ def set_status(paperID):
 def set_reviewer(paperID):
     paper = Paper.query.get(paperID)
 
-    author_ids = []
+    # TODO Duplicates
+    # TODO check if author is not available
+    forbidden_ids = []
     for author in paper.authors:
-        author_ids.append(author.id)
+        forbidden_ids.append(author.id)
 
-    pot_reviewers = []
-    users = User.query.filter(User.id not in author_ids).all()
+    for reviewer in paper.reviewers:
+        forbidden_ids.append(reviewer.reviewer.id)
+
+    potential_reviewers = []
+    # users = User.query.filter(User.id not in forbidden_ids).all()
+    users = db.session.query(User).filter(User.is_reviewer == True).filter(~User.id.in_(forbidden_ids)).all()
     for user in users:
-        pot_reviewers.append((user.id, user.email))
+        potential_reviewers.append((user.id, user.email))
 
+#   from forms.py
     form = SetReviewer()
-    form.reviewer.choices = pot_reviewers
+    form.reviewer.choices = potential_reviewers
 
     if request.method == "GET":
         return render_template('set_reviewer.html', paper=paper, form=form)
     elif request.method == 'POST':
         scores = []
-        reviewers = request.form.getlist("reviewer")
-        for reviewer in reviewers:
-            rev = User.query.filter_by(email=reviewer.email).first()
-            score = Score(paper_id=paper.id, user_id=rev.id)
+        reviewer_IDs = request.form.getlist("reviewer")
+        for reviewer_id in reviewer_IDs:
+            reviewer = User.query.get(reviewer_id)
+            score = Score(paper = paper, reviewer = reviewer)
             db.session.add(score)
-            db.session.commit()
-            paper.scores.append(score)
-            db.session.commit()
-
-        paper.reviewers.append(reviewers)
 
         db.session.commit()
         return redirect(url_for("accept_papers"))

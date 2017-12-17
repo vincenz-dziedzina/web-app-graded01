@@ -22,14 +22,16 @@
                     <tr>
                         <td>{{ paper.title }}</td>
                         <td>{{ paper.abstract }}</td>
-                        <td>{% for author in paper.authors %}
-                                {{ author.email }} <br>
-                            {% endfor %}
+                        <td>
+                          {% for author in paper.authors %}
+                            {{ author.email }} <br>
+                          {% endfor %}
                         </td>
-                        <td>{% for score in paper.scores %}
-                                {{ score.reviewer.email }}<bR>
-                            {% endfor %}<br>
-                            <a href="{{ url_for('set_reviewer', paperID=paper.id)}}">Change reviewers</a></td>
+                        <td>
+                          {% for reviewer in paper.reviewers %}
+                            {{ reviewer.reviewer.email }}<br>
+                          {% endfor %}<br>
+                          <a href="{{ url_for('set_reviewer', paperID=paper.id)}}">Change reviewers</a></td>
                         </td>
                         <td>{% for scoring in paper.scores %}
                                 {{ scoring.score }}<bR>
