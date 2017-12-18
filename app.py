@@ -1,11 +1,11 @@
 
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
-from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import *
 from forms import *
 from settings import app, db
+from helper_functions import *
 
 # Terminal instructions:
 # . web-tech/bin/activate
@@ -17,58 +17,18 @@ from settings import app, db
 # TODO add DB constraints
 # TODO implement CSRF token
 # TODO limit reviewers to three
-
-# Enum for python 2.7
-class Status:
-    UNDER_REVIEW = "under_review"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-
-def logged_in():
-    return "auth_user_id" in session
-
-# Provides logged_in and current_user variable for every template
-@app.context_processor
-def add_template_variables():
-    variables = dict()
-    logged_in_bool = logged_in()
-    variables["logged_in"] = logged_in
-    variables["request_path"] = str(request.path)
-    if logged_in_bool:
-        variables["current_user"] = get_current_user()
-    return variables
-
-def check_authentification(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if logged_in():
-            return f(*args, **kwargs)
-        else:
-            # TODO output some message with flash
-            # TODO implement automatic flash display if given in layout template
-            return redirect(url_for("login"))
-    return decorated_function
-
-def check_admin(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if get_current_user().is_admin:
-            return f(*args, **kwargs)
-        else:
-            # TODO do something appropriate
-            return redirect(url_for("login"))
-    return decorated_function
-
-def get_current_user():
-    return User.query.get(session["auth_user_id"])
+# TODO Sort stuff
+# TODO wrong input fields should get a red border
+# TODO Layout and login share some stuff, change that
+# TODO find a better solution to get the name of the formField instead plain String
 
 @app.route('/')
 @check_authentification
 def index():
+    flash("cool")
     current_user = get_current_user()
     papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
     return render_template('index.html', papers=papers)
-
 
 @app.route('/login', methods=["POST", "GET"])
 def login():
@@ -76,16 +36,25 @@ def login():
     if request.method == 'GET':
         return render_template('login.html', form=form)
     elif request.method == 'POST':
-        form_data = request.form
-        user = User.query.filter_by(email=form_data.get('email')).first()
-        if(user != None):
-            if check_password_hash(user.hashed_password, form_data.get("password")):
-                session["auth_user_id"] = user.id
-                return redirect(url_for("index"))
+        if form.validate_on_submit():
+            form_data = request.form
+            user = User.query.filter_by(email=form_data.get('email')).first()
+            if(user != None):
+                if check_password_hash(user.hashed_password, form_data.get("password")):
+                    flash({"formField" : "success", "message" : "Login successful"} , CssClasses.ERROR)
+                    session["auth_user_id"] = user.id
+                    return redirect(url_for("index"))
+                else:
+                    flash({"formField" : "password", "message" : "Login failed: Wrong password"} , CssClasses.ERROR)
+                    return render_template('login.html', message="Login failed", form=form)
             else:
-                return render_template('login.html', message="Login failed")
+                flash({"formField" : "email", "message" : "Login failed: User with this email does not exist"} , CssClasses.ERROR)
+                return render_template('login.html', message="No user with this email in database.", form=form)
         else:
-            return render_template('login.html', message="No user with this email in database.", form=form)
+            for formField, errors in form.errors.items():
+                for error in errors:
+                    flash({"formField" : formField, "message" : str(error)}, CssClasses.ERROR)
+            return render_template('login.html', form=form)
 
 @app.route('/logout')
 @check_authentification

@@ -22,5 +22,4 @@ class SetReviewer(FlaskForm):
     reviewer =  SelectMultipleField('Reviewer')
 
 class SetRating(FlaskForm):
-    # TODO validation for -2 to 2
     rating = IntegerField("Rating", validators=[NumberRange(min=-2, max=2)])

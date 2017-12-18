@@ -9,25 +9,42 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
 .w3-bar,h1,button {font-family: "Montserrat", sans-serif}
 </style>
 <div class=page>
-        <header class="w3-container w3-green w3-center" style="padding:128px 16px">
-      <h1 class="w3-margin w3-jumbo">Peer Review System</h1>
-      <p class="w3-xlarge">Template by w3.css</p>
-    </header>
-    <div class="w3-content">
-        <h1>Please Login</h1>
-        <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+  <header class="w3-container w3-green w3-center" style="padding:128px 16px">
+    <h1 class="w3-margin w3-jumbo">Peer Review System</h1>
+    <p class="w3-xlarge">Template by w3.css</p>
+  </header>
+  <div class="w3-content">
+    <h1>Please Login</h1>
+    <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
         <form action = "{{ url_for("login") }}" method = "POST" >
             {{ form.csrf_token }}
             {{ form.email.label(class_="w3-text-green") }}
+            {% if messages %}
+              {% for cssClasses, message in messages %}
+                {% if message["formField"] == "email" %}
+                  <div class="{{ cssClasses }}">
+                    <p>{{message["message"]}}</p>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             {{ form.email(class_="w3-input") }}
             {{ form.password.label(class_="w3-text-green") }}
+            {% if messages %}
+              {% for cssClasses, message in messages %}
+                {% if message["formField"] == "password" %}
+                  <div class="{{ cssClasses }}">
+                    <p>{{message["message"]}}</p>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             {{ form.password(class_="w3-input") }}
             <input type="submit" value="submit" class="w3-input"/>
         </form>
-        <p>{{ message }}</p>
-        <p><a href="{{ url_for("registration") }}">Register here</a></p>
-        </div>
+      {% endwith %}
+      <p><a href="{{ url_for("registration") }}">Register here</a></p>
     </div>
+  </div>
 </div>
-
-
