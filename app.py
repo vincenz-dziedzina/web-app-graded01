@@ -14,7 +14,6 @@ from settings import app, db
 # flask run
 
 # TODO put GET und Post Logic for one route in different functions
-# TODO Mark the current tab
 # TODO add DB constraints
 # TODO implement CSRF token
 # TODO limit reviewers to three
@@ -34,6 +33,7 @@ def add_template_variables():
     variables = dict()
     logged_in_bool = logged_in()
     variables["logged_in"] = logged_in
+    variables["request_path"] = str(request.path)
     if logged_in_bool:
         variables["current_user"] = get_current_user()
     return variables
