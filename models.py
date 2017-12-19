@@ -14,6 +14,7 @@ class Score(db.Model):
     left_id = db.Column(db.Integer, db.ForeignKey('paper.id'), primary_key=True)
     right_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     rating = db.Column(db.Integer, default=0)
+    is_rated = db.Column(db.Boolean, default=False)
     # relationships
     reviewer = relationship("User", back_populates="scored_papers")
     paper = relationship("Paper", back_populates="reviewers")
@@ -56,49 +57,9 @@ def seed_database():
     db.drop_all()
     db.create_all()
     hashed_password = generate_password_hash("password")
-    user1 = User(email="testmail1@web.de", hashed_password=hashed_password)
-    user2 = User(email="testmail3@web.de", hashed_password=hashed_password)
-    admin1 = User(email="conferencechair@web.de", hashed_password=hashed_password, is_admin=True)
-    paper1 = Paper(status="vergeben", title="testtitle", abstract="cool")
-    paper2 = Paper(status="vergebasdasden", title="testtitle2", abstract="cool2")
+    admin = User(email="conferencechair@web.de", hashed_password=hashed_password, is_admin=True)
 
-    db.session.add(user1)
-    db.session.add(user2)
-    db.session.add(admin1)
-    db.session.add(paper1)
-    db.session.add(paper2)
+    db.session.add(admin)
     db.session.commit()
-
-    foundUser = User.query.first()
-    foundPaper = Paper.query.first()
-
-    foundPaper.authors.append(foundUser)
-    db.session.add(foundPaper)
-    db.session.commit()
-
-    foundUser = User.query.first()
-    foundPaper = Paper.query.first()
-
-    score = Score(rating=5)
-    score.reviewer = foundUser
-    score.paper = foundPaper
-
-    #
-    # score = Score(rating=10)
-    # score.reviewer=User.query.all()[1]
-    # score.paper = foundPaper
-    #
-    # db.session.add(score)
-    # db.session.commit()
-    #
-    # foundUser = User.query.first()
-    # foundPaper = Paper.query.first()
-    print(score.reviewer)
-    print(score.paper)
-    print(score.reviewer.scored_papers[0])
-    print(score.paper.reviewers[0].reviewer)
-    # print("reviewers: ", foundPaper.scores)
-    # print(foundPaper.scores[0].reviewer.id == foundUser.id)
-    # print(foundPaper.scores[0].paper.id == foundPaper.id)
 
 # seed_database()

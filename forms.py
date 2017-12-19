@@ -5,7 +5,7 @@ from wtforms.validators import *
 class PaperSubmission(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(min=5, max=200)])
     abstract = StringField('Abstract', validators=[DataRequired(), Length(min=5, max=500)])
-    authors = SelectMultipleField('Authors')
+    authors = SelectMultipleField('Other authors', coerce=int)
 
 class Login(FlaskForm):
     email =  StringField('Email', validators=[DataRequired(), Email()])

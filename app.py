@@ -34,6 +34,8 @@ def index():
     flash("cool")
     current_user = get_current_user()
     papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
+    review_papers = db.session.query(Paper).filter(Paper.scores.any(reviewer=current_user)).filter(Paper.scores.any(is_rated = False))
+    debug
     return render_template('index.html', papers=papers)
 
 @app.route('/login', methods=["POST", "GET"])
@@ -267,6 +269,7 @@ def postPaper(paperID):
                 rating = form.rating.data
                 score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
                 score.rating = rating
+                score.is_rated = True
                 db.session.commit()
 
                 flash({"formField" : "success", "message" : "Rating successful"} , CssClasses.SUCCESS)
