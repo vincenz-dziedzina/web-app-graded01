@@ -3,16 +3,45 @@
     <h1>Paper Submission!</h1>
     <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
         <h2>Submit your paper here</h2>
-        <form action = {{ url_for("paper_submission") }} method = "POST">
-            {{ form.csrf_token }}
-            {{ form.title.label(class_="w3-text-green") }}
-            {{ form.title(class_="w3-input") }}
-            {{ form.abstract.label(class_="w3-text-green") }}
-            {{ form.abstract(class_="w3-input") }}
-            {{ form.authors.label(class_="w3-text-green") }}
-            {{ form.authors(class_="w3-input") }}
-            <input type="submit" value="submit" class="w3-input"/>
-        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          <form action = {{ url_for("paper_submission") }} method = "POST">
+              {{ form.csrf_token }}
+              {{ form.title.label(class_="w3-text-green") }}
+              {% if messages %}
+                {% for cssClasses, message in messages %}
+                  {% if message["formField"] == "title" %}
+                    <div class="{{ cssClasses }}">
+                      <p>{{message["message"]}}</p>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+              {{ form.title(class_="w3-input") }}
+              {{ form.abstract.label(class_="w3-text-green") }}
+              {% if messages %}
+                {% for cssClasses, message in messages %}
+                  {% if message["formField"] == "abstract" %}
+                    <div class="{{ cssClasses }}">
+                      <p>{{message["message"]}}</p>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+              {{ form.abstract(class_="w3-input") }}
+              {{ form.authors.label(class_="w3-text-green") }}
+              {% if messages %}
+                {% for cssClasses, message in messages %}
+                  {% if message["formField"] == "authors" %}
+                    <div class="{{ cssClasses }}">
+                      <p>{{message["message"]}}</p>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+              {{ form.authors(class_="w3-input") }}
+              <input type="submit" value="submit" class="w3-input"/>
+          </form>
+        {% endwith %}
     </div>
 
 {% endblock %}
