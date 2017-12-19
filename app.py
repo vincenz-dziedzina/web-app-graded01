@@ -13,9 +13,8 @@ from helper_functions import *
 # export FLASK_DEBUG=1
 # flask run
 
-# TODO put GET und Post Logic for one route in different functions
+# TODO put post and get logic in one function
 # TODO add DB constraints
-# TODO implement CSRF token
 # TODO limit reviewers to three
 # TODO Sort stuff
 # TODO wrong input fields should get a red border
@@ -23,6 +22,8 @@ from helper_functions import *
 # TODO find a better solution to get the name of the formField instead plain String
 # TODO css for making title appearing
 # TODO implement the error_display.html in the other pages
+# TODO Home page should display number of own paper, number of papers to review, list of papers to review etc.
+# TODO Change Status of reviewer to normal User, effect on Review rating?
 
 @app.route('/')
 @check_authentification
@@ -86,9 +87,7 @@ def registration():
             session["auth_user_id"] = new_user.id
             return redirect(url_for("index"))
         else:
-            for formField, errors in form.errors.items():
-                for error in errors:
-                    flash({"formField" : formField, "message" : str(error)}, CssClasses.ERROR)
+            flash_errors(form)
             return render_template('registration.html', form=form)
 
 @app.route('/paper_submission', methods=['POST', 'GET'])
@@ -179,7 +178,7 @@ def set_status(paperID):
 def set_reviewer(paperID):
     paper = Paper.query.get(paperID)
 
-    # TODO Duplicates
+    # TODO Duplicates, use Sets
     # TODO check if author is not available
     forbidden_ids = []
     for author in paper.authors:
@@ -229,15 +228,17 @@ def getPaperRating(paperID):
     score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
 
     if(paper != None):
-        for reviewer in paper.reviewers:
-            if reviewer.reviewer.id == user.id:
-                form = SetRating()
-                form.rating.data = score.rating
-                return render_template("rate_paper.html", paper=paper, form=form)
-        # TODO flash message not allowed to rate this paper
-        return redirect(url_for("getPapers"))
+        if paper.has_reviewer(user):
+            form = SetRating()
+            form.rating.data = score.rating
+            return render_template("rate_paper.html", paper=paper, form=form)
+
+        else:
+            flash({"formField" : "error", "message" : "You do not have access to this paper"} , CssClasses.ERROR)
+            return redirect(url_for("getPapers"))
+    # elif user is author of paper maybe
     else:
-        # TODO flash message this paper does not exist
+        flash({"formField" : "error", "message" : "This paper does not exist"} , CssClasses.ERROR)
         return redirect(url_for("getPapers"))
 
 @app.route("/papers/<int:paperID>", methods=["POST"])
@@ -248,20 +249,22 @@ def postPaper(paperID):
 
     if(paper != None):
         form = SetRating(request.form)
-        if(form.validate()):
-            # TODO refactor for handling everywhere else
-            rating = form.rating.data
-            score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
-            score.rating = rating
-            db.session.commit()
-            # TODO flash now oder message
-            return render_template("rate_paper.html", paper=paper, form=form)
+        if paper.has_reviewer(user):
+            if form.validate_on_submit():
+                rating = form.rating.data
+                score = Score.query.filter(Score.reviewer == user).filter(Score.paper == paper).first()
+                score.rating = rating
+                db.session.commit()
+
+                flash({"formField" : "success", "message" : "Rating successful"} , CssClasses.SUCCESS)
+                return render_template("rate_paper.html", paper=paper, form=form)
+            else:
+                flash_errors(form)
+                return render_template("rate_paper.html", paper=paper, form=form)
         else:
-            # TODO flash message: render_template(rate_paper, form=form)
-            # TODO error handling
-            return redirect(url_for("getPaperRating",  paper.id))
+            flash({"formField" : "", "message" : "You are not allowed to rate this paper"} , CssClasses.ERROR)
     else:
-        flash({"formField" : "", "message" : "This paper does not exist"} , CssClasses.SUCCESS)
+        flash({"formField" : "", "message" : "This paper does not exist"} , CssClasses.ERROR)
         return redirect(url_for("getPaperRating",  paper.id))
 
 if __name__ == '__main__':

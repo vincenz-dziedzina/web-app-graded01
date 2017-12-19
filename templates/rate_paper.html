@@ -2,6 +2,7 @@
 {% block body %}
     <h1>Paper Rating</h1>
     <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+      {% include "error_display.html" %}
       <h2>{{ paper.title }}</h2>
       <p>{{ paper.abstract }}</p>
       <form action ="{{ url_for('postPaper', paperID=paper.id) }}" method = "POST">

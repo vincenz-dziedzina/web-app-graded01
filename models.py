@@ -43,6 +43,12 @@ class Paper(db.Model):
     reviewers = db.relationship("Score", back_populates="paper")
     scores = db.relationship("Score", back_populates="paper")
 
+    def has_reviewer(self, user):
+        for reviewer in self.reviewers:
+            if reviewer.reviewer.id == user.id:
+                return True
+        return False
+
     def __repr__(self):
         return '<Paper %r>' % self.title
 

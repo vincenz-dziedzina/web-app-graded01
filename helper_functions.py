@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from functools import wraps
 from settings import app
 from models import *
@@ -50,3 +50,8 @@ def check_admin(f):
 
 def get_current_user():
     return User.query.get(session["auth_user_id"])
+
+def flash_errors(form):
+    for formField, errors in form.errors.items():
+        for error in errors:
+            flash({"formField" : formField, "message" : str(error)}, CssClasses.ERROR)
