@@ -24,6 +24,8 @@ from helper_functions import *
 # TODO implement the error_display.html in the other pages
 # TODO Home page should display number of own paper, number of papers to review, list of papers to review etc.
 # TODO Change Status of reviewer to normal User, effect on Review rating?
+# TODO Layout logged_in
+# TODO Registration check if email allready exists
 
 @app.route('/')
 @check_authentification
@@ -78,14 +80,17 @@ def registration():
             form_data = request.form
 
             hashed_password = generate_password_hash(form_data.get("password"))
-            new_user = User(email=form_data.get("email"), hashed_password = hashed_password)
+            try:
+                new_user = User(email=form_data.get("email"), hashed_password = hashed_password)
+                db.session.add(new_user)
+                db.session.commit()
 
-            db.session.add(new_user)
-            db.session.commit()
-
-            flash({"formField" : "success", "message" : "Registration successful"} , CssClasses.SUCCESS)
-            session["auth_user_id"] = new_user.id
-            return redirect(url_for("index"))
+                flash({"formField" : "success", "message" : "Registration successful"} , CssClasses.SUCCESS)
+                session["auth_user_id"] = new_user.id
+                return redirect(url_for("index"))
+            except IntegrityError:
+                flash({"formField" : "error", "message" : "Email already exists"} , CssClasses.ERROR)
+                return redirect(url_for("registration"))
         else:
             flash_errors(form)
             return render_template('registration.html', form=form)
@@ -95,32 +100,40 @@ def registration():
 def paper_submission():
     # TODO make this RESTfull, add a paper page where the author can delete the paper: paper/id
     current_user = get_current_user()
+
+    potential_authors = []
+    users = User.query.filter(User.email != current_user.email).all()
+    for user in users:
+        tuple = (user.id, user.email)
+        potential_authors.append(tuple)
+
     if request.method == "GET":
         form = PaperSubmission()
-        choices = []
-        users = User.query.filter(User.email != current_user.email).all()
-        for user in users:
-            tuple = (user.id, user.email)
-            choices.append(tuple)
-        form.authors.choices = choices
+        form.authors.choices = potential_authors
         return render_template('paper_submission.html', form=form)
     elif request.method == "POST":
-        result = request.form
+        form = PaperSubmission(request.form)
+        form.authors.choices = potential_authors
+        if form.validate_on_submit():
+            new_paper = Paper(status=Status.UNDER_REVIEW, title=form.title.data, abstract=form.abstract.data)
+            authors = form.authors.data
+            users = User.query.filter(User.id in authors).all()
 
-        new_paper = Paper(status=Status.UNDER_REVIEW, title=result.get('title'), abstract=result.get('abstract'))
-        authors = request.form.getlist("authors")
-        users = User.query.filter(User.id in authors).all()
+            for user in users:
+                new_paper.authors.append(user)
 
-        for user in users:
-            new_paper.authors.append(user)
+            new_paper.authors.append(current_user)
+            db.session.add(new_paper)
+            db.session.commit()
 
-        new_paper.authors.append(current_user)
-        db.session.add(new_paper)
-        db.session.commit()
-
-        # TODO redirect to Paper page RESTfull with delete button
-        papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
-        return render_template('index.html', current_user=current_user, papers=papers)
+            # TODO Optional: redirect to Paper page RESTfull with delete button
+            papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
+            flash({"formField" : "", "message" : "Paper submission successful"}, CssClasses.SUCCESS)
+            return render_template('index.html', current_user=current_user, papers=papers)
+        else:
+            debug
+            flash_errors(form)
+            return render_template('paper_submission.html', form=form)
 
 @app.route('/roles', methods=['POST', 'GET'])
 @check_authentification
@@ -161,7 +174,7 @@ def set_status(paperID):
     paper = Paper.query.filter_by(id=paperID).first()
     form = SetStatus()
     # I really am sorry for this but nothing else worked
-    choices = [('under_review', Status.UNDER_REVIEW), ('accepted', Status.ACCEPTED), ('rejected', Status.REJECTED)]
+    choices = [(Status.UNDER_REVIEW, Status.UNDER_REVIEW), (Status.ACCEPTED, Status.ACCEPTED), (Status.REJECTED, Status.REJECTED)]
     form.status.choices = choices
 
     if request.method == "GET":
