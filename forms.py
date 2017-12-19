@@ -13,7 +13,7 @@ class Login(FlaskForm):
 
 class Registration(FlaskForm):
     email =  StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=5, max=30)])
 
 class SetStatus(FlaskForm):
     status =  SelectField('Status', coerce=str)

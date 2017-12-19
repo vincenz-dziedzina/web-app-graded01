@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import *
 from forms import *
@@ -89,7 +90,7 @@ def registration():
                 session["auth_user_id"] = new_user.id
                 return redirect(url_for("index"))
             except IntegrityError:
-                flash({"formField" : "error", "message" : "Email already exists"} , CssClasses.ERROR)
+                flash({"formField" : "email", "message" : "Email already exists"} , CssClasses.ERROR)
                 return redirect(url_for("registration"))
         else:
             flash_errors(form)
