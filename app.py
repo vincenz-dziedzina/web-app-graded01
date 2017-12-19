@@ -21,6 +21,8 @@ from helper_functions import *
 # TODO wrong input fields should get a red border
 # TODO Layout and login share some stuff, change that
 # TODO find a better solution to get the name of the formField instead plain String
+# TODO css for making title appearing
+# TODO implement the error_display.html in the other pages
 
 @app.route('/')
 @check_authentification
@@ -41,7 +43,7 @@ def login():
             user = User.query.filter_by(email=form_data.get('email')).first()
             if(user != None):
                 if check_password_hash(user.hashed_password, form_data.get("password")):
-                    flash({"formField" : "success", "message" : "Login successful"} , CssClasses.ERROR)
+                    flash({"formField" : "success", "message" : "Login successful"} , CssClasses.SUCCESS)
                     session["auth_user_id"] = user.id
                     return redirect(url_for("index"))
                 else:
@@ -60,25 +62,34 @@ def login():
 @check_authentification
 def logout():
     del session["auth_user_id"]
+    # TODO implement flash message display
+    flash({"formField" : "", "message" : "Logout successfull"}, CssClasses.ERROR)
     return redirect(url_for("login"))
 
 # TODO regular expression for email
 @app.route('/registration', methods=['POST', 'GET'])
 def registration():
+    form = Registration()
     if request.method == 'GET':
-        form = Registration()
         return render_template('registration.html', form=form)
     elif request.method == 'POST':
-        form_data = request.form
+        if form.validate_on_submit():
+            form_data = request.form
 
-        hashed_password = generate_password_hash(form_data.get("password"))
-        new_user = User(email=form_data.get("email"), hashed_password = hashed_password)
+            hashed_password = generate_password_hash(form_data.get("password"))
+            new_user = User(email=form_data.get("email"), hashed_password = hashed_password)
 
-        db.session.add(new_user)
-        db.session.commit()
+            db.session.add(new_user)
+            db.session.commit()
 
-        session["auth_user_id"] = new_user.id
-        return redirect(url_for("index"))
+            flash({"formField" : "success", "message" : "Registration successful"} , CssClasses.SUCCESS)
+            session["auth_user_id"] = new_user.id
+            return redirect(url_for("index"))
+        else:
+            for formField, errors in form.errors.items():
+                for error in errors:
+                    flash({"formField" : formField, "message" : str(error)}, CssClasses.ERROR)
+            return render_template('registration.html', form=form)
 
 @app.route('/paper_submission', methods=['POST', 'GET'])
 @check_authentification
@@ -129,8 +140,11 @@ def roles():
                 user.is_reviewer = True
             else:
                 user.is_reviewer = False
+
         db.session.commit()
-        return redirect(url_for("index"))
+        # TODO check if leaving out formfield would throw errors
+        flash({"formField" : "", "message" : "Roles updated"}, CssClasses.SUCCESS)
+        return render_template('set_roles.html', users=users)
 
 # TODO test admin access
 # TODO add error codes, maybe??
@@ -231,6 +245,7 @@ def getPaperRating(paperID):
 def postPaper(paperID):
     user = get_current_user()
     paper = Paper.query.get(paperID)
+
     if(paper != None):
         form = SetRating(request.form)
         if(form.validate()):
@@ -246,7 +261,7 @@ def postPaper(paperID):
             # TODO error handling
             return redirect(url_for("getPaperRating",  paper.id))
     else:
-        # TODO flash message
+        flash({"formField" : "", "message" : "This paper does not exist"} , CssClasses.SUCCESS)
         return redirect(url_for("getPaperRating",  paper.id))
 
 if __name__ == '__main__':

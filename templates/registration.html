@@ -16,15 +16,34 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <div class="w3-content">
     <h1>Registration</h1>
     <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
         <form action = "{{ url_for("registration") }}" method = "POST">
             {{ form.csrf_token }}
             {{ form.email.label(class_="w3-text-green") }}
+            {% if messages %}
+              {% for cssClasses, message in messages %}
+                {% if message["formField"] == "email" %}
+                  <div class="{{ cssClasses }}">
+                    <p>{{message["message"]}}</p>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             {{ form.email(class_="w3-input") }}
             {{ form.password.label(class_="w3-text-green") }}
+            {% if messages %}
+              {% for cssClasses, message in messages %}
+                {% if message["formField"] == "password" %}
+                  <div class="{{ cssClasses }}">
+                    <p>{{message["message"]}}</p>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
             {{ form.password(class_="w3-input") }}
             <input type="submit" value="submit" class="w3-input"/>
         </form>
+      {% endwith %}
     </div>
     </div>
 </div>
-

@@ -1,0 +1,9 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for cssClasses, message in messages %}
+      <div class="{{ cssClasses }}">
+        <p>{{message["message"]}}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
