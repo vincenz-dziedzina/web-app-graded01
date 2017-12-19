@@ -34,9 +34,8 @@ def index():
     flash("cool")
     current_user = get_current_user()
     papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
-    review_papers = db.session.query(Paper).filter(Paper.scores.any(reviewer=current_user)).filter(Paper.scores.any(is_rated = False))
-    debug
-    return render_template('index.html', papers=papers)
+    review_papers = db.session.query(Paper).filter(Paper.scores.any(reviewer=current_user)).filter(Paper.scores.any(is_rated = False)).all()
+    return render_template('index.html', papers=papers, review_papers=review_papers)
 
 @app.route('/login', methods=["POST", "GET"])
 def login():

@@ -5,6 +5,10 @@
     <p>Hello User {{ current_user.email }}</p>
     <div class="w3-row-padding w3-light-grey w3-padding-64 w3-container">
         <h2>Submitted Papers</h2>
+        {% if current_user.is_reviewer %}
+          <p>You have to review <strong>{{ review_papers|length }}</strong> papers</p>
+          <a href="{{url_for('getPapers')}}">Go to the paper review page</a>
+        {% endif %}
         {% if papers == None %}
             <p>You haven't handed in anything</p>
         {% else %}
