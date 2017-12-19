@@ -16,8 +16,8 @@ from helper_functions import *
 # TODO put post and get logic in one function
 # TODO add DB constraints
 # TODO limit reviewers to three
-# TODO Sort stuff
-# TODO wrong input fields should get a red border
+# TODO Optional: Sort stuff
+# TODO Optional: wrong input fields should get a red border
 # TODO Layout and login share some stuff, change that
 # TODO find a better solution to get the name of the formField instead plain String
 # TODO css for making title appearing
