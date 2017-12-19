@@ -132,7 +132,6 @@ def paper_submission():
             flash({"formField" : "", "message" : "Paper submission successful"}, CssClasses.SUCCESS)
             return render_template('index.html', current_user=current_user, papers=papers)
         else:
-            debug
             flash_errors(form)
             return render_template('paper_submission.html', form=form)
 
