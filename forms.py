@@ -3,16 +3,16 @@ from wtforms import StringField, SelectMultipleField, PasswordField, SelectField
 from wtforms.validators import *
 
 class PaperSubmission(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    abstract = StringField('Abstract', validators=[DataRequired()])
+    title = StringField('Title', validators=[DataRequired(), Length(min=5, max=200)])
+    abstract = StringField('Abstract', validators=[DataRequired(), Length(min=5, max=500)])
     authors = SelectMultipleField('Authors')
 
 class Login(FlaskForm):
-    email =  StringField('Email', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    email =  StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=5, max=30)])
 
 class Registration(FlaskForm):
-    email =  StringField('Email', validators=[DataRequired()])
+    email =  StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
 
 class SetStatus(FlaskForm):
