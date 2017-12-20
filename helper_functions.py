@@ -21,7 +21,7 @@ def logged_in():
 def add_template_variables():
     variables = dict()
     logged_in_bool = logged_in()
-    variables["logged_in"] = logged_in
+    variables["logged_in"] = logged_in()
     variables["request_path"] = str(request.path)
     if logged_in_bool:
         variables["current_user"] = get_current_user()
