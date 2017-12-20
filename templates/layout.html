@@ -23,7 +23,7 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
       <a href="{{ url_for('roles') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('roles') == request_path)%} w3-white {% endif %}">Set Roles</a>
       <a href="{{ url_for('accept_papers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('accept_papers') == request_path)%} w3-white {% endif %}">Overview Papers</a>
       {% endif %}
-      <a href="{{ url_for('getPapers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('getPapers') == request_path)%} w3-white {% endif %}">Papers</a>
+      <a href="{{ url_for('getPapersUserOverview') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('getPapersUserOverview') == request_path)%} w3-white {% endif %}">Papers</a>
       <a href="{{ url_for('logout') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('logout') == request_path)%} w3-white {% endif %}">Logout</a>
     {% endif %}
   </div>

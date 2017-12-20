@@ -8,6 +8,6 @@
       {% if current_user.is_reviewer %}
         <p>Number of papers to review: <strong>{{ review_papers|length }}</strong></p>
       {% endif %}
-      <a href="{{url_for('getPapers')}}">Go to the papers page</a>
+      <a href="{{url_for('getPapersUserOverview')}}">Go to the papers page</a>
     </div>
 {% endblock %}

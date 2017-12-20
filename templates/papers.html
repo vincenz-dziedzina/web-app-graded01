@@ -21,7 +21,7 @@
         {% for score in scores %}
             <li>
               {{ score.paper.title}}
-              <a href="{{ url_for('getPaperRating', paperID=score.paper.id) }}">Add rating</a>
+              <a href="{{ url_for('getPaperReviewRating', paperID=score.paper.id) }}">Add rating</a>
             </li>
         {% endfor %}
       </ul>

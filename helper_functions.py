@@ -44,7 +44,8 @@ def check_admin(f):
         if get_current_user().is_admin:
             return f(*args, **kwargs)
         else:
-            # TODO do something appropriate
+            # TODO refactor this
+            flash({"formField" : "success", "message" : "Only the conferencechair (admin) has access to this page"}, CssClasses.ERROR)
             return redirect(url_for("login"))
     return decorated_function
 
