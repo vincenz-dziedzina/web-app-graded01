@@ -16,7 +16,7 @@ class CssClasses:
 def logged_in():
     return "auth_user_id" in session
 
-# Provides logged_in and current_user variable for every template
+# Provides logged_in, request_path and current_user variable for every template
 @app.context_processor
 def add_template_variables():
     variables = dict()

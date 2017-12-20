@@ -2,6 +2,7 @@
 {% block body %}
     <h1>Set reviewers for</h1>
     <h2>{{ paper.title }}</h2>
+    <p>You should usually assign 3 Reviewers.</p>
     <form action = "{{ url_for('set_reviewer', paperID=paper.id)}}" method = "POST" >
             {{ form.csrf_token }}
             {{ form.reviewer.label(class_="w3-text-green") }}

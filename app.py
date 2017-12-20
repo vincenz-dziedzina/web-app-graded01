@@ -14,40 +14,28 @@ from helper_functions import *
 # export FLASK_DEBUG=1
 # flask run
 
-# TODO put post and get logic in one function
-# TODO add DB constraints
-# TODO limit reviewers to three
-# TODO Optional: Sort stuff
-# TODO Optional: wrong input fields should get a red border
-# TODO Layout and login share some stuff, change that
-# TODO find a better solution to get the name of the formField instead plain String
-# TODO css for making title appearing
-# TODO implement the error_display.html in the other pages
-# TODO Home page should display number of own paper, number of papers to review, list of papers to review etc.
-# TODO Change Status of reviewer to normal User, effect on Review rating?
-# TODO Layout logged_in
-# TODO Registration check if email allready exists
-
 @app.route('/')
 @check_authentification
 def index():
-    flash("cool")
+    # get_current_user function is in the helper_functions file
     current_user = get_current_user()
-    papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
+    submitted_papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
     review_papers = db.session.query(Paper).filter(Paper.scores.any(reviewer=current_user)).filter(Paper.scores.any(is_rated = False)).all()
-    return render_template('index.html', papers=papers, review_papers=review_papers)
+    return render_template('index.html', submitted_papers=submitted_papers, review_papers=review_papers)
 
 @app.route('/login', methods=["POST", "GET"])
 def login():
-    form = Login()
+    # form classes are in the forms file
     if request.method == 'GET':
+        form = Login()
         return render_template('login.html', form=form)
     elif request.method == 'POST':
+        form = Login(request.form)
         if form.validate_on_submit():
-            form_data = request.form
-            user = User.query.filter_by(email=form_data.get('email')).first()
-            if(user != None):
-                if check_password_hash(user.hashed_password, form_data.get("password")):
+            user = User.query.filter_by(email=form.email.data).first()
+            if user != None :
+                if check_password_hash(user.hashed_password, form.password.data):
+                    # CSS classes enum is specified in the helper functions file
                     flash({"formField" : "success", "message" : "Login successful"} , CssClasses.SUCCESS)
                     session["auth_user_id"] = user.id
                     return redirect(url_for("index"))
@@ -58,9 +46,8 @@ def login():
                 flash({"formField" : "email", "message" : "Login failed: User with this email does not exist"} , CssClasses.ERROR)
                 return render_template('login.html', message="No user with this email in database.", form=form)
         else:
-            for formField, errors in form.errors.items():
-                for error in errors:
-                    flash({"formField" : formField, "message" : str(error)}, CssClasses.ERROR)
+            # flash_errors function is in the helper_functions file
+            flash_errors(form)
             return render_template('login.html', form=form)
 
 @app.route('/logout')
@@ -68,7 +55,7 @@ def login():
 def logout():
     del session["auth_user_id"]
     # TODO implement flash message display
-    flash({"formField" : "", "message" : "Logout successfull"}, CssClasses.ERROR)
+    flash({"formField" : "success", "message" : "Logout successfull"}, CssClasses.SUCCESS)
     return redirect(url_for("login"))
 
 # TODO regular expression for email
@@ -100,11 +87,10 @@ def registration():
 @app.route('/paper_submission', methods=['POST', 'GET'])
 @check_authentification
 def paper_submission():
-    # TODO make this RESTfull, add a paper page where the author can delete the paper: paper/id
     current_user = get_current_user()
 
     potential_authors = []
-    users = User.query.filter(User.email != current_user.email).all()
+    users = User.query.filter(User.email != current_user.email).filter(User.is_admin == False).all()
     for user in users:
         tuple = (user.id, user.email)
         potential_authors.append(tuple)
@@ -116,11 +102,13 @@ def paper_submission():
     elif request.method == "POST":
         form = PaperSubmission(request.form)
         form.authors.choices = potential_authors
+        if current_user.is_admin:
+            flash({"formField" : "error", "message" : "The admin is not allowed to submit papers"}, CssClasses.ERROR)
+            return render_template('paper_submission.html', form=form)
         if form.validate_on_submit():
             new_paper = Paper(status=Status.UNDER_REVIEW, title=form.title.data, abstract=form.abstract.data)
             authors = form.authors.data
-            users = User.query.filter(User.id in authors).all()
-
+            users = User.query.filter(User.id.in_(authors)).all()
             for user in users:
                 new_paper.authors.append(user)
 
@@ -128,10 +116,9 @@ def paper_submission():
             db.session.add(new_paper)
             db.session.commit()
 
-            # TODO Optional: redirect to Paper page RESTfull with delete button
             papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
-            flash({"formField" : "", "message" : "Paper submission successful"}, CssClasses.SUCCESS)
-            return render_template('index.html', current_user=current_user, papers=papers)
+            flash({"formField" : "error", "message" : "Paper submission successful"}, CssClasses.SUCCESS)
+            return redirect(url_for("getPapers"))
         else:
             flash_errors(form)
             return render_template('paper_submission.html', form=form)
@@ -142,7 +129,7 @@ def paper_submission():
 def roles():
     current_user = get_current_user()
     # writing to db with this method did not work
-    users = User.query.all()
+    users = User.query.filter(User.is_admin == False).all()
     # users = db.session.query(User).all()
     if request.method == "GET":
         return render_template('set_roles.html', users=users)
