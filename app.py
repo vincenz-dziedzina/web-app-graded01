@@ -15,7 +15,7 @@ from helper_functions import *
 # export FLASK_DEBUG=1
 # flask run
 
-@app.route('/')
+@app.route('/home')
 @check_authentification # preprocessor in the helper_functions file
 def index():
     # get_current_user function is in the helper_functions file
@@ -25,6 +25,7 @@ def index():
     return render_template('index.html', submitted_papers=submitted_papers, review_papers=review_papers)
 
 @app.route('/login', methods=["POST", "GET"])
+@app.route("/", methods=["POST", "GET"])
 def login():
     # form classes are in the forms file
     if request.method == 'GET':
