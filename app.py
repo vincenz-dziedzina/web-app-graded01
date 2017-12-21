@@ -2,6 +2,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import *
 from forms import *
@@ -20,7 +21,7 @@ def index():
     # get_current_user function is in the helper_functions file
     current_user = get_current_user()
     submitted_papers = Paper.query.filter(Paper.authors.any(id=current_user.id)).all()
-    review_papers = db.session.query(Paper).filter(Paper.scores.any(reviewer=current_user)).filter(Paper.scores.any(is_rated = False)).all()
+    review_papers = Score.query.filter(Score.reviewer.has(id=current_user.id)).filter_by(is_rated=False).all()
     return render_template('index.html', submitted_papers=submitted_papers, review_papers=review_papers)
 
 @app.route('/login', methods=["POST", "GET"])
