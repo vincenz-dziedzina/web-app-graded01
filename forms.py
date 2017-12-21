@@ -5,7 +5,7 @@ from helper_functions import Status
 
 class PaperSubmission(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(min=5, max=200)])
-    abstract = TextAreaField('Abstract', validators=[DataRequired(), Length(min=5, max=1000)])
+    abstract = TextAreaField('Abstract', validators=[DataRequired(), Length(min=5, max=2000)])
     authors = SelectMultipleField('Other authors', coerce=int)
 
 class Login(FlaskForm):

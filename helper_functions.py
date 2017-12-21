@@ -33,8 +33,7 @@ def check_authentification(f):
         if logged_in():
             return f(*args, **kwargs)
         else:
-            # TODO output some message with flash
-            # TODO implement automatic flash display if given in layout template
+            flash({"formField" : "success", "message" : "You do not have access to this page."}, CssClasses.ERROR)
             return redirect(url_for("login"))
     return decorated_function
 
@@ -44,7 +43,6 @@ def check_admin(f):
         if get_current_user().is_admin:
             return f(*args, **kwargs)
         else:
-            # TODO refactor this
             flash({"formField" : "success", "message" : "Only the conferencechair (admin) has access to this page"}, CssClasses.ERROR)
             return redirect(url_for("login"))
     return decorated_function

@@ -18,12 +18,12 @@ body,h1,h2,h3,h4,h5,h6 {font-family: "Lato", sans-serif}
     <a href="{{ url_for('index')}}" class="w3-bar-item w3-button w3-padding-large {% if(url_for('index') == request_path)%} w3-white {% endif %}">Home</a>
       {% if not current_user.is_admin %}
         <a href="{{ url_for('paper_submission')}}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('paper_submission') == request_path)%} w3-white {% endif %}">Submit Paper</a>
+        <a href="{{ url_for('getPapersUserOverview') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('getPapersUserOverview') == request_path)%} w3-white {% endif %}">Papers</a>
       {% endif %}
       {% if current_user.is_admin %}
       <a href="{{ url_for('roles') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('roles') == request_path)%} w3-white {% endif %}">Set Roles</a>
       <a href="{{ url_for('accept_papers') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('accept_papers') == request_path)%} w3-white {% endif %}">Overview Papers</a>
       {% endif %}
-      <a href="{{ url_for('getPapersUserOverview') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('getPapersUserOverview') == request_path)%} w3-white {% endif %}">Papers</a>
       <a href="{{ url_for('logout') }}" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white {% if(url_for('logout') == request_path)%} w3-white {% endif %}">Logout</a>
     {% endif %}
   </div>

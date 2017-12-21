@@ -36,7 +36,12 @@
                           {% endif %}
                         </td>
                         <td>{% for score in paper.scores %}
-                                {{ score.rating }}<br>
+                                {% if score.is_rated %}
+                                  {{ score.rating }}
+                                {% else %}
+                                  Not rated yet
+                                {% endif %}
+                                  <br>
                             {% endfor %}
                         </td>
                         <td>
